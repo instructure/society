@@ -5,18 +5,21 @@ module Society
 
   class CLI < Thor
 
-    desc_text = "Formats are html (default) and json."
-    desc_text << "Example: society from foo/ -f json -o ./society_data.json"
+    desc "from [-f FORMAT] [-o OUTPUT_PATH] PATHS_TO_FILES...", "Run dependency analysis on PATHS_TO_FILES..."
+    long_desc <<-LONGDESC
+      `PATHS_TO_FILES...` is a list of files to analyze. Can specify directories
+      and/or files. For directories, all *.rb files found in the directory tree
+      get included. Wildcards (e.g. `*`) are not currently supported.\n\n
+      Example: society from -f json -o ./society_data.json app/models app/services
+    LONGDESC
 
-    desc "from PATH_TO_FILE [-f FORMAT] [-o OUTPUT_PATH]", desc_text
-    method_option :format, :type => :string, :default => 'html', :aliases => "-f"
-    method_option :output, :type => :string, :aliases => "-o"
+    method_option :format, :type => :string, :default => 'html', :aliases => "-f", :desc => "Output format; json or html"
+    method_option :output, :type => :string, :aliases => "-o", :desc => "Output path; default for html is ./doc/society, default for json is STDOUT"
 
-    def from(path)
-      Society.new(path).report(format, options['output'])
+    def from(path, *more_paths) # need initial non-splatted arg to get Thor to fail gracefully when no args are passed
+      paths = [path] + more_paths
+      Society.new(*paths).report(format, options['output'])
     end
-
-    default_task :from
 
     private
 
